@@ -3,11 +3,14 @@ import { Inter } from 'next/font/google'
 import axios from 'axios'
 import { Item } from '@/models/item'
 import { Gemstone } from '@/models/gemstone.enum'
+import { getApiBazaar, getApiItems } from '@/services/hypixel-api'
+import { Product } from '@/models/product'
 
 const inter = Inter({ subsets: ['latin'] })
 
-export default function Home({ items }: {
-  items: Item[]
+export default function Home({ items, products }: {
+  items: Item[],
+  products: Product[],
 }) {
   return (
     <>
@@ -25,11 +28,14 @@ export default function Home({ items }: {
             .map(item => (
               <div key={item.id} className="flex flex-row gap-2">
                 <p>
-                  {item.name} ({item.category})
+                  {item.name}
                 </p>
               </div>
             ))}
         </div>
+
+        <p>{JSON.stringify(products)}</p>
+
       </main>
     </>
   )
@@ -37,18 +43,20 @@ export default function Home({ items }: {
 
 export async function getServerSideProps() {
 
-  const res = await axios.get('https://api.hypixel.net/resources/skyblock/items');
+  const itemsRes = await getApiItems();
 
-  const items: Item[] = res.data.items;
-
-  const filteredItems = items
+  const items = itemsRes.data.items
     .filter((item: Item) => Object
       .values(Gemstone).some(gemstone => item.name.includes(gemstone)))
-    .sort((a: Item, b: Item) => a.name.localeCompare(b.name));
+    .sort((a: Item, b: Item) => a.name.localeCompare(b.name));;
+
+  const bazaarRes = await getApiBazaar();
+
+  const products = bazaarRes.data.products;
 
   return {
     props: {
-      items: filteredItems,
+      items, products
     }, // will be passed to the page component as props
   }
 }
