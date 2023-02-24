@@ -1,9 +1,8 @@
 import Head from 'next/head'
-import Image from 'next/image'
 import { Inter } from 'next/font/google'
-import styles from '@/styles/Home.module.css'
 import axios from 'axios'
 import { Item } from '@/models/item'
+import { Gemstone } from '@/models/gemstone.enum'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -23,7 +22,6 @@ export default function Home({ items }: {
 
         <div className="flex flex-col gap-2">
           {items
-            .sort((a, b) => a.name.localeCompare(b.name))
             .map(item => (
               <div key={item.id} className="flex flex-row gap-2">
                 <p>
@@ -43,9 +41,14 @@ export async function getServerSideProps() {
 
   const items: Item[] = res.data.items;
 
+  const filteredItems = items
+    .filter((item: Item) => Object
+      .values(Gemstone).some(gemstone => item.name.includes(gemstone)))
+    .sort((a: Item, b: Item) => a.name.localeCompare(b.name));
+
   return {
     props: {
-      items: items
+      items: filteredItems,
     }, // will be passed to the page component as props
   }
 }
