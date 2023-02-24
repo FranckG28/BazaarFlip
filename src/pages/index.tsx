@@ -2,10 +2,14 @@ import Head from 'next/head'
 import Image from 'next/image'
 import { Inter } from 'next/font/google'
 import styles from '@/styles/Home.module.css'
+import axios from 'axios'
+import { Item } from '@/models/item'
 
 const inter = Inter({ subsets: ['latin'] })
 
-export default function Home() {
+export default function Home({ items }: {
+  items: Item[]
+}) {
   return (
     <>
       <Head>
@@ -16,7 +20,32 @@ export default function Home() {
       </Head>
       <main className="p-5 max-w-3xl mx-auto bg-indigo-100">
         <h1 className="text-3xl font-bold text-indigo-500">Bazaar flip</h1>
+
+        <div className="flex flex-col gap-2">
+          {items
+            .sort((a, b) => a.name.localeCompare(b.name))
+            .map(item => (
+              <div key={item.id} className="flex flex-row gap-2">
+                <p>
+                  {item.name} ({item.category})
+                </p>
+              </div>
+            ))}
+        </div>
       </main>
     </>
   )
+}
+
+export async function getServerSideProps() {
+
+  const res = await axios.get('https://api.hypixel.net/resources/skyblock/items');
+
+  const items: Item[] = res.data.items;
+
+  return {
+    props: {
+      items: items
+    }, // will be passed to the page component as props
+  }
 }
