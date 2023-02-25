@@ -80,12 +80,15 @@ export async function getServerSideProps() {
   // Populate missing items category
   const items: Item[] = baseItems.map(item => {
     const bazaar = findInBazaar(item.id);
+    const skinData = JSON.parse(Buffer.from(item.skin, 'base64').toString('ascii'));
+
     return {
       ...item,
       sellPrice: bazaar.sellPrice,
       buyPrice: bazaar.buyPrice,
       stoneCategory: GemstoneUtils.getGemstoneCategory(item.name),
-      stoneType: GemstoneUtils.getGemstoneType(item.name)
+      stoneType: GemstoneUtils.getGemstoneType(item.name),
+      skinUrl: skinData.textures.SKIN.url
     }
   });
 
