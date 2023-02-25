@@ -1,16 +1,17 @@
 import Head from 'next/head'
-import { Inter } from 'next/font/google'
-import axios from 'axios'
-import { Item } from '@/models/item'
+import { BaseItem, Item } from '@/models/item'
 import { Gemstone } from '@/models/gemstone.enum'
 import { getApiBazaar, getApiItems } from '@/services/hypixel-api'
-import { Product } from '@/models/product'
+import { Product, Products } from '@/models/product'
+import StoneComponent from '@/components/stone'
+import { GemstoneUtils } from '@/services/gemstone-utils'
 
-const inter = Inter({ subsets: ['latin'] })
-
-export default function Home({ items, products }: {
-  items: Item[],
-  products: Product[],
+export default function Home({
+  gemstones
+}: {
+  gemstones: {
+    [stone in Gemstone]: Item[]
+  }
 }) {
   return (
     <>
@@ -20,21 +21,25 @@ export default function Home({ items, products }: {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <main className="p-5 max-w-3xl mx-auto bg-indigo-100">
+      <main className="p-5 max-w-3xl mx-auto bg-indigo-100 flex flex-col gap-5">
         <h1 className="text-3xl font-bold text-indigo-500">Bazaar flip</h1>
 
-        <div className="flex flex-col gap-2">
-          {items
-            .map(item => (
-              <div key={item.id} className="flex flex-row gap-2">
-                <p>
-                  {item.name}
-                </p>
-              </div>
-            ))}
-        </div>
+        <div className="flex flex-col gap-4">
 
-        <p>{JSON.stringify(products)}</p>
+          {Object.values(Gemstone)
+            .filter(gemstoneType => gemstones[gemstoneType]?.length > 0)
+            .map(gemstoneType => {
+              return <div key={gemstoneType} className="flex flex-col gap-3">
+                <h2 className="text-2xl font-bold text-indigo-500">{gemstoneType}</h2>
+                <div className="flex flex-col gap-2">
+                  {gemstones[gemstoneType].map(item => {
+                    return <StoneComponent item={item} key={item.id} />
+                  })
+                  }
+                </div>
+              </div>
+            })}
+        </div>
 
       </main>
     </>
@@ -43,20 +48,63 @@ export default function Home({ items, products }: {
 
 export async function getServerSideProps() {
 
+  // Getting gemstones
   const itemsRes = await getApiItems();
 
-  const items = itemsRes.data.items
-    .filter((item: Item) => Object
+  const baseItems = itemsRes.data.items
+    .filter((item: BaseItem) => Object
       .values(Gemstone).some(gemstone => item.name.includes(gemstone)))
-    .sort((a: Item, b: Item) => a.name.localeCompare(b.name));;
+    .sort((a: BaseItem, b: BaseItem) => a.name.localeCompare(b.name));;
 
+  // Getting bazaar
   const bazaarRes = await getApiBazaar();
 
-  const products = bazaarRes.data.products;
+  // Merging gemstones and bazaar
+  const itemIds = baseItems.map(baseItems => baseItems.id);
+
+  const products = Object.values(bazaarRes.data.products)
+    .filter((product: Product) => itemIds.includes(product.product_id))
+    .reduce((acc: Products, product: Product) => ({
+      ...acc,
+      [product.product_id]: product
+    }), {} as Products);
+
+  const findInBazaar = (productId: string): { sellPrice: number, buyPrice: number } => {
+    const product = products[productId];
+    return {
+      sellPrice: product.quick_status.sellPrice,
+      buyPrice: product.quick_status.buyPrice,
+    }
+  }
+
+  // Populate missing items category
+  const items: Item[] = baseItems.map(item => {
+    const bazaar = findInBazaar(item.id);
+    return {
+      ...item,
+      sellPrice: bazaar.sellPrice,
+      buyPrice: bazaar.buyPrice,
+      stoneCategory: GemstoneUtils.getGemstoneCategory(item.name),
+      stoneType: GemstoneUtils.getGemstoneType(item.name)
+    }
+  });
+
+  // Grouping gemstones by type
+  const gemstones = items.reduce((acc, item) => {
+    return {
+      ...acc,
+      [item.stoneType]: [...(acc[item.stoneType] || []), item]
+    }
+  }, {} as { [stone in Gemstone]: Item[] });
+
+  // Sort each gemstone by category
+  Object.values(Gemstone).forEach(gemstoneType => {
+    gemstones[gemstoneType].sort(GemstoneUtils.sortByCategory);
+  });
 
   return {
     props: {
-      items, products
+      gemstones
     }, // will be passed to the page component as props
   }
 }

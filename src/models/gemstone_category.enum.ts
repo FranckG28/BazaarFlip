@@ -1,6 +1,6 @@
 export enum GemstoneCategory {
     ROUGH = "Rough",
-    FLAWLED = "Flawled",
+    FLAWED = "Flawed",
     FINE = "Fine",
     FLAWLESS = "Flawless",
     PERFECT = "Perfect",
