@@ -16,7 +16,7 @@ export default function StoneTypeComponent({
         <h2 className="text-2xl font-bold text-indigo-100">{gemstoneType}</h2>
         <div className="flex flex-col divide-y divide-gray-700">
             {items.map(item => {
-                return <StoneComponent item={item} key={item.id} className={item.buyPriceToPerfect === minimalBuyPriceToPerfect ? 'bg-green-300/10' : 'hover:bg-gray-500/10'} />
+                return <StoneComponent item={item} key={item.id} className={item.buyPriceToPerfect === minimalBuyPriceToPerfect ? 'bg-green-300/10 hover:bg-green-300/20 shadow-lg' : 'hover:bg-gray-500/10'} />
             })}
         </div>
     </div>
