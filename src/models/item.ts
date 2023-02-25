@@ -19,4 +19,7 @@ export interface Item extends BaseItem {
     skinUrl?: string
     buyPrice: number;
     sellPrice: number;
+    buyPriceToPerfect: number;
+    sellPriceToPerfect: number;
+    quantityToPerfect: number;
 }

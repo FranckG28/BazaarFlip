@@ -3,9 +3,10 @@ import { BaseItem, Item } from '@/models/item'
 import { Gemstone } from '@/models/gemstone.enum'
 import { getApiBazaar, getApiItems } from '@/services/hypixel-api'
 import { Product, Products } from '@/models/product'
-import StoneComponent from '@/components/stone'
 import { GemstoneUtils } from '@/services/gemstone-utils'
 import { MinecraftUtils } from '@/services/minecraft-utils'
+import { GEMSTONE_CONFIG } from '@/models/gemstone.config'
+import StoneTypeComponent from '@/components/stone-type'
 
 export default function Home({
   gemstones
@@ -22,24 +23,15 @@ export default function Home({
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <main className="p-5 max-w-3xl mx-auto bg-indigo-100 flex flex-col gap-5">
-        <h1 className="text-3xl font-bold text-indigo-500">Bazaar flip</h1>
+      <main className="p-8 max-w-3xl mx-auto bg-gray-800 border-l border-r border-gray-700 shadow flex flex-col gap-8">
+        <h1 className="text-3xl font-bold text-white">Bazaar flip</h1>
 
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-8">
 
           {Object.values(Gemstone)
             .filter(gemstoneType => gemstones[gemstoneType]?.length > 0)
-            .map(gemstoneType => {
-              return <div key={gemstoneType} className="flex flex-col gap-3">
-                <h2 className="text-2xl font-bold text-indigo-500">{gemstoneType}</h2>
-                <div className="flex flex-col gap-2">
-                  {gemstones[gemstoneType].map(item => {
-                    return <StoneComponent item={item} key={item.id} />
-                  })
-                  }
-                </div>
-              </div>
-            })}
+            .map(gemstoneType => <StoneTypeComponent gemstoneType={gemstoneType} items={gemstones[gemstoneType]} key={gemstoneType} />)}
+
         </div>
 
       </main>
@@ -82,14 +74,18 @@ export async function getServerSideProps() {
 
   const items: Item[] = baseItems.map((item) => {
     const bazaar = findInBazaar(item.id);
-
+    const stoneCategory = GemstoneUtils.getGemstoneCategory(item.name);
+    const quantityToPerfect = GEMSTONE_CONFIG[stoneCategory].quantityToPerfect;
     return {
       ...item,
       sellPrice: bazaar.sellPrice,
       buyPrice: bazaar.buyPrice,
-      stoneCategory: GemstoneUtils.getGemstoneCategory(item.name),
+      stoneCategory,
       stoneType: GemstoneUtils.getGemstoneType(item.name),
       skinUrl: MinecraftUtils.getSkinUrl(item.skin),
+      quantityToPerfect,
+      buyPriceToPerfect: bazaar.buyPrice * quantityToPerfect,
+      sellPriceToPerfect: bazaar.sellPrice * quantityToPerfect,
     };
 
   });
