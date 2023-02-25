@@ -16,7 +16,7 @@ export interface BaseItem {
 export interface Item extends BaseItem {
     stoneCategory: GemstoneCategory;
     stoneType: Gemstone;
-    skinUrl: string
+    skinUrl?: string
     buyPrice: number;
     sellPrice: number;
 }

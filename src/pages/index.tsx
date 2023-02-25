@@ -5,6 +5,7 @@ import { getApiBazaar, getApiItems } from '@/services/hypixel-api'
 import { Product, Products } from '@/models/product'
 import StoneComponent from '@/components/stone'
 import { GemstoneUtils } from '@/services/gemstone-utils'
+import { MinecraftUtils } from '@/services/minecraft-utils'
 
 export default function Home({
   gemstones
@@ -78,9 +79,9 @@ export async function getServerSideProps() {
   }
 
   // Populate missing items category
-  const items: Item[] = baseItems.map(item => {
+
+  const items: Item[] = baseItems.map((item) => {
     const bazaar = findInBazaar(item.id);
-    const skinData = JSON.parse(Buffer.from(item.skin, 'base64').toString('ascii'));
 
     return {
       ...item,
@@ -88,8 +89,9 @@ export async function getServerSideProps() {
       buyPrice: bazaar.buyPrice,
       stoneCategory: GemstoneUtils.getGemstoneCategory(item.name),
       stoneType: GemstoneUtils.getGemstoneType(item.name),
-      skinUrl: skinData.textures.SKIN.url
-    }
+      skinUrl: MinecraftUtils.getSkinUrl(item.skin),
+    };
+
   });
 
   // Grouping gemstones by type
