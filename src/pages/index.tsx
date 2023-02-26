@@ -38,7 +38,7 @@ export default function Home({
       </nav>
 
 
-      <main className="p-8 max-w-3xl mx-auto bg-gray-800 border-l border-r border-gray-700 shadow flex flex-col gap-8 pt-28">
+      <main className="p-8 max-w-3xl mx-auto bg-gray-800 border-l border-r border-gray-700 shadow flex flex-col gap-8 pt-40 md:pt-28">
 
         <div className="flex flex-col gap-8">
 
