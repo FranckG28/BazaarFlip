@@ -7,6 +7,9 @@ import { GemstoneUtils } from '@/services/gemstone-utils'
 import { MinecraftUtils } from '@/services/minecraft-utils'
 import { GEMSTONE_CONFIG } from '@/models/gemstone.config'
 import StoneTypeComponent from '@/components/stone-type'
+import { useState } from 'react'
+import { DisplayMode } from '@/models/display-mode.enum'
+import DisplayModeSwitch from '@/components/display-mode-switch'
 
 export default function Home({
   gemstones
@@ -15,6 +18,9 @@ export default function Home({
     [stone in Gemstone]: Item[]
   }
 }) {
+
+  const [displayMode, setDisplayMode] = useState(DisplayMode.BUY);
+
   return (
     <>
       <Head>
@@ -23,14 +29,26 @@ export default function Home({
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <main className="p-8 max-w-3xl mx-auto bg-gray-800 border-l border-r border-gray-700 shadow flex flex-col gap-8">
-        <h1 className="text-3xl font-bold text-white">Bazaar flip</h1>
+
+      <nav className='fixed w-full p-4 bg-gray-800/40 border-b border-gray-700 backdrop-blur-xl shadow-xl'>
+        <div className='max-w-3xl w-full mx-auto flex max-md:flex-col max-md:gap-3 items-center'>
+          <h1 className="text-4xl font-bold text-indigo-200 flex-1">Bazaar flip</h1>
+          <DisplayModeSwitch displayMode={displayMode} setDisplayMode={setDisplayMode} />
+        </div>
+      </nav>
+
+
+      <main className="p-8 max-w-3xl mx-auto bg-gray-800 border-l border-r border-gray-700 shadow flex flex-col gap-8 pt-28">
 
         <div className="flex flex-col gap-8">
 
           {Object.values(Gemstone)
             .filter(gemstoneType => gemstones[gemstoneType]?.length > 0)
-            .map(gemstoneType => <StoneTypeComponent gemstoneType={gemstoneType} items={gemstones[gemstoneType]} key={gemstoneType} />)}
+            .map(gemstoneType => <StoneTypeComponent
+              displayMode={displayMode}
+              gemstoneType={gemstoneType}
+              items={gemstones[gemstoneType]}
+              key={gemstoneType} />)}
 
         </div>
 
